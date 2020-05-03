@@ -1,0 +1,186 @@
+<html>
+	<head>
+		<title>this is an easy application to generate regular expression</title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		
+	</head>
+	<body>
+		<div id="app">
+			<el-container>
+			  <el-header id="header">屏蔽规则</el-header>
+			  <el-main id="main">
+					<el-row>
+						<el-col :span="12" :offset="6">
+							<el-form label-width="120px" :model="formLabelAlign">
+							  <el-form-item label="屏蔽关键词">
+							    <el-input v-for="(key, index) in formLabelAlign.keys"  :key = "'keys' + index" v-model="formLabelAlign.keys[index]" class='inputItem'></el-input>
+							  </el-form-item>
+							  <el-form-item label="屏蔽出现多次">
+							    <el-input v-for="(multKeys, index) in formLabelAlign.multKeys" :key = "'multKeys' + index" v-model="formLabelAlign.multKeys[index]" class='inputItem'></el-input>
+							  </el-form-item>
+							  <el-form-item label="弹幕长度限制">
+							  	<el-switch v-model="lengthCon"></el-switch>
+							    <el-input v-model="length" placeholder="长度" class='inputItem' v-if="lengthCon"></el-input>
+							  </el-form-item>
+							  <el-form-item label="屏蔽日期">
+							    <el-switch v-model="forDate" class="switch"></el-switch>
+							  </el-form-item>
+							  <el-form-item label="屏蔽纯数字">
+							    <el-switch v-model="forPureData" class="switch"></el-switch>
+							  </el-form-item>
+							  <el-form-item label="屏蔽纯字母">
+							    <el-switch v-model="forPureAl" class="switch"></el-switch>
+							  </el-form-item>
+							  <el-form-item label="屏蔽竖发弹幕">
+							    <el-switch v-model="forCol" class="switch"></el-switch>
+							  </el-form-item>
+
+							</el-form>
+						</el-col>
+						<el-col :span="4">
+							<el-form >
+							  <el-form-item >
+							    <el-button icon="el-icon-plus"  @click="addKeys" style="display: inline"></el-button>
+							    <el-button icon="el-icon-minus"  @click="deleteKeys" style="display: inline"></el-button>
+							  </el-form-item>
+							  <el-form-item >
+							    <el-button icon="el-icon-plus"  @click="addMyltKeys" style="display: inline"></el-button>
+							    <el-button icon="el-icon-minus"  @click="deleteMultKeys" style="display: inline"></el-button>
+							  </el-form-item>
+							</el-form>
+						</el-col>
+					</el-row>
+					<el-row>
+						<el-col :span="12" :offset="12">
+							<el-button @click="generate">Generate</el-button>
+						</el-col>
+					</el-row>
+				</el-main>
+			</el-container>
+			<el-dialog  title="生成的屏蔽规则" :visible.sync="dialogVis" width="50%">
+				<div id='result'>
+				</div>
+			</el-dialog>
+		</div>
+		<script>
+			var app = new Vue({
+			  	el: '#app',
+			  	data: {
+			  		lengthCon: false,
+			  		forDate: false,
+			  		forPureData: false,
+			  		forPureAl: false,
+			  		forCol: false,
+			  		length: 20,
+			  		dialogVis: false,
+				    formLabelAlign: {
+				    	keys: [],
+				    	multKeys: []
+				    }
+				 },
+				methods: {
+					addKeys: function() {
+						this.formLabelAlign.keys.push('')
+					},
+					deleteKeys: function() {
+						this.formLabelAlign.keys.pop()
+					},
+					addMyltKeys: function() {
+						this.formLabelAlign.multKeys.push('')
+					},
+					deleteMultKeys: function() {
+						this.formLabelAlign.multKeys.pop()
+					},
+
+					generateRule: function() {
+						// let finalRule = ''
+						if (this.formLabelAlign.keys.length > 0) {
+							for (let item of this.formLabelAlign.keys) {
+								let p=document.createElement("p")
+								p.innerHTML = '/.*' + item + '.*/'
+								let div = document.getElementById('result')
+								div.appendChild(p)
+							}
+						}
+
+						if (this.formLabelAlign.multKeys.length >= 1 && this.formLabelAlign.multKeys[0] !== '') {
+							for (let item of this.formLabelAlign.multKeys) {
+								let p=document.createElement("p")
+								p.innerHTML = '/.*(' + item +  '){2,}.*/'
+								let div = document.getElementById('result')
+								div.appendChild(p)
+							}
+						}
+
+						if (this.lengthCon) {
+							let p=document.createElement("p")
+							p.innerHTML = '/.{' + this.length + ',}/'
+							let div = document.getElementById('result')
+							div.appendChild(p)
+						}
+						if (this.forDate) {
+							let p=document.createElement("p")
+							p.innerHTML = '/\d{2,4}[年|\-|\.]\d{1,2}[月|\-|\.]\d{1,2}[日|号|.]*/ '
+							let div = document.getElementById('result')
+							div.appendChild(p)
+						} 
+						if (this.forPureData) {
+							let p=document.createElement("p")
+							p.innerHTML = '/^\d+$/'
+							let div = document.getElementById('result')
+							div.appendChild(p)
+						}
+						if (this.forPureAl) {
+							let p=document.createElement("p")
+							p.innerHTML = '/^[a-zA-Z0-9]+$/' 
+							let div = document.getElementById('result')
+							div.appendChild(p) 
+						}
+						if (this.forCol) {
+							let p=document.createElement("p")
+							p.innerHTML = '/^.$/'
+							let div = document.getElementById('result')
+							div.appendChild(p)
+						}
+					},
+
+					generate() {
+						this.dialogVis = true
+						this.$nextTick(this.generateRule)
+						let ps = document.querySelectorAll("p")
+						let div = document.getElementById('result')
+						for (let p of ps) {
+							div.removeChild(p)
+						}
+					}
+
+
+				}
+			})	
+		</script>
+		<style>
+			#app {
+				/*max-width: 800px;*/
+			}
+			#header {
+				display: flex;
+				justify-content: center;
+				font-size: 20px;
+				padding-top: 20px;
+				background-color: #F0FFF0;
+			}
+			#main {
+				background-color: #EEEED1;
+			}
+			.inputItem {
+				width: 100px;
+			}
+			.switch {
+				/*width: 20px;*/
+				margin-top: 10px;
+			}
+		</style>
+	</body>
+</html>
